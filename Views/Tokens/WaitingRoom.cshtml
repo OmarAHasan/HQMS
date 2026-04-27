@@ -1,0 +1,45 @@
+﻿@model IEnumerable<HospitalQueueMS.Models.Token>
+@{
+    var role = Context.Session.GetString("Role");
+}
+
+<h2>Waiting Room</h2>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Token ID</th>
+            <th>Clinic</th>
+            <th>Department</th>
+            <th>Status</th>
+            @if (role == "Doctor" || role == "Admin")
+            {
+                <th>Actions</th>
+            }
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var token in Model)
+        {
+            <tr>
+                <td>@token.TokenId</td>
+                <td>@token.Clinic.ClinicName</td>
+                <td>@token.Clinic.Department.DepartmentName</td>
+                <td>@token.Status</td>
+                @if (role == "Doctor" || role == "Admin")
+                {
+                    <td>
+                        @if (token.Status == TokenStatus.Waiting)
+                        {
+                            <a asp-action="NextToken" asp-route-id="@token.TokenId" class="btn btn-primary">Call Next</a>
+                        }
+                        else if (token.Status == TokenStatus.InProgress)
+                        {
+                            <a asp-action="CompleteToken" asp-route-id="@token.TokenId" class="btn btn-success">Complete</a>
+                        }
+                    </td>
+                }
+            </tr>
+        }
+    </tbody>
+</table>

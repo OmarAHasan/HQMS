@@ -1,0 +1,47 @@
+﻿@model IEnumerable<HospitalQueueMS.Models.Token>
+
+@{
+    ViewData["Title"] = "Tokens";
+}
+
+<h2>Tokens</h2>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Token Number</th>
+            <th>Issued At</th>
+            <th>Patient</th>
+            <th>Clinic</th>
+            <th>Priority</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>@item.TokenNumber</td>
+            <td>@item.Patient?.FullName</td>
+            <td>@item.Clinic?.ClinicName</td>
+            <td>@item.Priority</td>
+            <td>@item.Status</td>
+                <td>
+                    @if (item.Status == TokenStatus.Waiting)
+                    {
+                        <a asp-action="Call" asp-route-id="@item.TokenId" class="btn btn-warning btn-sm">Call</a>
+                    }
+                    else if (item.Status == TokenStatus.InProgress)
+                    {
+                        <a asp-action="Complete" asp-route-id="@item.TokenId" class="btn btn-success btn-sm">Complete</a>
+                    }
+
+                    <a asp-action="Edit" asp-route-id="@item.TokenId" class="btn btn-primary btn-sm">Edit</a>
+                    <a asp-action="Delete" asp-route-id="@item.TokenId" class="btn btn-danger btn-sm">Delete</a>
+                </td>
+         </tr>
+        }
+    </tbody>
+</table>
+
+<a asp-action="Create" class="btn btn-primary">Create New Token</a>

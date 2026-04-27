@@ -1,0 +1,32 @@
+﻿@model HospitalQueueMS.Models.CreateUnifiedViewModel
+
+<h2>Create Patient & Token</h2>
+
+<form asp-action="CreateUnified" method="post">
+    <div class="form-group">
+        <label asp-for="FullName"></label>
+        <input asp-for="FullName" class="form-control" />
+    </div>
+
+    <div class="form-group">
+        <label asp-for="PatientCode"></label>
+        <input asp-for="PatientCode" class="form-control" />
+    </div>
+
+    <div class="form-group">
+        <label asp-for="DepartmentId"></label>
+        <select asp-for="DepartmentId" asp-items="Model.Departments" class="form-control"></select>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="ClinicId"></label>
+        <select asp-for="ClinicId" asp-items="Model.Clinics" class="form-control"></select>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Priority"></label>
+        <select asp-for="Priority" asp-items="Model.Priorities" class="form-control"></select>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Save</button>
+</form>

@@ -1,8 +1,39 @@
-﻿<h2>Admin Dashboard</h2>
+﻿@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Admin Dashboard";
+}
 
-<ul>
-    <li><a asp-controller="Users" asp-action="Index">Manage Users</a></li>
-    <li><a asp-controller="Users" asp-action="Create">Add New User</a></li>
-    <li><a asp-controller="Departments" asp-action="Index">Manage Departments</a></li>
-    <li><a asp-controller="Clinics" asp-action="Index">Manage Clinics</a></li>
-</ul>
+<h2>Admin Dashboard</h2>
+
+<div class="list-group">
+    <!-- إدارة المستخدمين -->
+    <a asp-controller="Users" asp-action="Index" class="list-group-item list-group-item-action btn btn-info">
+        Manage Users
+    </a>
+    <a asp-controller="Users" asp-action="Create" class="list-group-item list-group-item-action btn btn-info">
+        Create New User
+    </a>
+
+    <!-- إدارة الأقسام -->
+    <a asp-controller="Departments" asp-action="Index" class="list-group-item list-group-item-action btn btn-info">
+        Manage Departments
+    </a>
+    <a asp-controller="Departments" asp-action="Create" class="list-group-item list-group-item-action btn btn-info">
+        Create Department
+    </a>
+
+    <!-- إدارة العيادات -->
+    <a asp-controller="Clinics" asp-action="Index" class="list-group-item list-group-item-action btn btn-info">
+        Manage Clinics
+    </a>
+    <a asp-controller="Clinics" asp-action="Create" class="list-group-item list-group-item-action btn btn-info">
+        Create Clinic
+    </a>
+
+    <!-- إدارة التوكنز -->
+    <a asp-controller="Tokens" asp-action="Index" class="list-group-item list-group-item-action btn btn-info">
+        Manage Tokens
+    </a>
+    <a asp-controller="Tokens" asp-action="CreateUnified" class="btn btn-success">Generate Token</a>
+
+</div>

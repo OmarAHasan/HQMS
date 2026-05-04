@@ -1,84 +1,47 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using HospitalQueueMS.Models;
-using HospitalQueueMS.Data;
-using Microsoft.AspNetCore.Http;
 
-public class HomeController : Controller
+namespace HospitalQueueMS.Controllers
 {
-    private readonly ApplicationDbContext _context;
-
-    public HomeController(ApplicationDbContext context)
+    public class HomeController : Controller
     {
-        _context = context;
-    }
-    // صفحة الـ Login
-    public IActionResult Index()
-    {
-        return View();
-    }
-    public IActionResult CreateUser() => View();
-
-    [HttpPost]
-    public IActionResult CreateUser(User user)
-    {
-        _context.Users.Add(user);
-        _context.SaveChanges();
-        return RedirectToAction("Index");
-    }
-
-    // تسجيل خروج
-    public IActionResult Logout()
-    {
-        HttpContext.Session.Clear();
-        return RedirectToAction("Index");
-    }
-
-    [HttpPost]
-    public IActionResult Index(string username, string password)
-    {
-        // أمثلة ثابتة لليوزر والباسورد
-        if (username == "reception" && password == "123")
+        // صفحة الأدمن
+        public IActionResult AdminDashboard()
         {
-            HttpContext.Session.SetString("Role", "Reception");
-            return RedirectToAction("ReceptionDashboard");
-        }
-        else if (username == "doctor" && password == "123")
-        {
-            HttpContext.Session.SetString("Role", "Doctor");
-            return RedirectToAction("DoctorDashboard");
-        }
-        else if (username == "admin" && password == "123")
-        {
-            HttpContext.Session.SetString("Role", "Admin");
-            return RedirectToAction("AdminDashboard");
+            if (!User.IsInRole("Admin"))
+                return RedirectToAction("Login", "Users");
+
+            return View();
         }
 
-        // لو البيانات غلط
-        ViewBag.Error = "Invalid username or password";
-        return View();
-    }
+        // صفحة الدكتور
+        public IActionResult DoctorDashboard()
+        {
+            if (!User.IsInRole("Doctor"))
+                return RedirectToAction("Login", "Users");
 
-    // صفحة الاستقبال
-    public IActionResult ReceptionDashboard()
-    {
-        var role = HttpContext.Session.GetString("Role");
-        if (role != "Reception") return RedirectToAction("Index");
-        return View();
-    }
+            return View();
+        }
 
-    // صفحة الدكتور
-    public IActionResult DoctorDashboard()
-    {
-        var role = HttpContext.Session.GetString("Role");
-        if (role != "Doctor") return RedirectToAction("Index");
-        return View();
-    }
+        // صفحة الاستقبال
+        public IActionResult ReceptionDashboard()
+        {
+            if (!User.IsInRole("Reception"))
+                return RedirectToAction("Login", "Users");
 
-    // صفحة الأدمن
-    public IActionResult AdminDashboard()
-    {
-        var role = HttpContext.Session.GetString("Role");
-        if (role != "Admin") return RedirectToAction("Index");
-        return View();
+            return View();
+        }
+
+        public IActionResult Index()
+        {
+            if (User.IsInRole("Admin"))
+                return RedirectToAction("AdminDashboard");
+            else if (User.IsInRole("Doctor"))
+                return RedirectToAction("DoctorDashboard");
+            else if (User.IsInRole("Reception"))
+                return RedirectToAction("ReceptionDashboard");
+            else
+                return RedirectToAction("Login", "Users");
+        }
+
     }
 }

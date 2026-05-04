@@ -37,14 +37,14 @@ namespace HospitalQueueMS.Migrations
                     b.Property<int>("DepartmentId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("DoctorId")
-                        .HasColumnType("int");
+                    b.Property<string>("DoctorUserId")
+                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("ClinicId");
 
                     b.HasIndex("DepartmentId");
 
-                    b.HasIndex("DoctorId");
+                    b.HasIndex("DoctorUserId");
 
                     b.ToTable("Clinics");
                 });
@@ -59,7 +59,8 @@ namespace HospitalQueueMS.Migrations
 
                     b.Property<string>("DepartmentName")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.HasKey("DepartmentId");
 
@@ -98,8 +99,17 @@ namespace HospitalQueueMS.Migrations
                     b.Property<int>("ClinicId")
                         .HasColumnType("int");
 
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<int>("DepartmentId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("MobileNumber")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("PatientId")
                         .HasColumnType("int");
@@ -116,37 +126,13 @@ namespace HospitalQueueMS.Migrations
 
                     b.HasKey("TokenId");
 
+                    b.HasIndex("ClinicId");
+
+                    b.HasIndex("DepartmentId");
+
                     b.HasIndex("PatientId");
 
-                    b.HasIndex("Status");
-
-                    b.HasIndex("ClinicId", "TokenId");
-
                     b.ToTable("Tokens");
-                });
-
-            modelBuilder.Entity("HospitalQueueMS.Models.User", b =>
-                {
-                    b.Property<int>("UserId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("UserId"));
-
-                    b.Property<string>("PasswordHash")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("Role")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Username")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("UserId");
-
-                    b.ToTable("Users");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -174,6 +160,26 @@ namespace HospitalQueueMS.Migrations
                         .HasFilter("[NormalizedName] IS NOT NULL");
 
                     b.ToTable("AspNetRoles", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = "1",
+                            Name = "Admin",
+                            NormalizedName = "ADMIN"
+                        },
+                        new
+                        {
+                            Id = "2",
+                            Name = "Doctor",
+                            NormalizedName = "DOCTOR"
+                        },
+                        new
+                        {
+                            Id = "3",
+                            Name = "Reception",
+                            NormalizedName = "RECEPTION"
+                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -264,6 +270,50 @@ namespace HospitalQueueMS.Migrations
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
 
                     b.ToTable("AspNetUsers", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = "10",
+                            AccessFailedCount = 0,
+                            ConcurrencyStamp = "56d0ac77-5751-4cae-9605-27b65eb6b2c8",
+                            EmailConfirmed = false,
+                            LockoutEnabled = false,
+                            NormalizedUserName = "ADMIN",
+                            PasswordHash = "AQAAAAIAAYagAAAAEEHOHC/SmhpRbb0j2aCQZI/u290Yeob9rXmSoat5TWGRjubPH7sxMXV9PfP6Jp6hGw==",
+                            PhoneNumberConfirmed = false,
+                            SecurityStamp = "9f5a47c1-8469-423a-bf40-fecb253eef19",
+                            TwoFactorEnabled = false,
+                            UserName = "admin"
+                        },
+                        new
+                        {
+                            Id = "11",
+                            AccessFailedCount = 0,
+                            ConcurrencyStamp = "beeb448d-38d3-44ea-bc1e-4035f33faf42",
+                            EmailConfirmed = false,
+                            LockoutEnabled = false,
+                            NormalizedUserName = "DOCTOR",
+                            PasswordHash = "AQAAAAIAAYagAAAAEMEyr7LvoirphprfEXShFrfkNKj78JHC6riuw75Ez+xzPLo8c22mKTxcrIeP+3v98g==",
+                            PhoneNumberConfirmed = false,
+                            SecurityStamp = "7df6c00d-48d8-4b9a-a390-11f98ed137df",
+                            TwoFactorEnabled = false,
+                            UserName = "doctor"
+                        },
+                        new
+                        {
+                            Id = "12",
+                            AccessFailedCount = 0,
+                            ConcurrencyStamp = "d2a3e2e4-306a-40c6-bbd3-83b40da22bf7",
+                            EmailConfirmed = false,
+                            LockoutEnabled = false,
+                            NormalizedUserName = "RECEPTION",
+                            PasswordHash = "AQAAAAIAAYagAAAAENsykIvB86/6JAQRj099U5TDU4Xq+VeT5DxBb60tHbMeA3FsNC+HPohtHUG9qo9nFA==",
+                            PhoneNumberConfirmed = false,
+                            SecurityStamp = "63fb4909-1b5e-4386-a90a-f3e9a3571af3",
+                            TwoFactorEnabled = false,
+                            UserName = "reception"
+                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
@@ -326,6 +376,23 @@ namespace HospitalQueueMS.Migrations
                     b.HasIndex("RoleId");
 
                     b.ToTable("AspNetUserRoles", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            UserId = "10",
+                            RoleId = "1"
+                        },
+                        new
+                        {
+                            UserId = "11",
+                            RoleId = "2"
+                        },
+                        new
+                        {
+                            UserId = "12",
+                            RoleId = "3"
+                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
@@ -355,13 +422,13 @@ namespace HospitalQueueMS.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("HospitalQueueMS.Models.User", "Doctor")
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", "DoctorUser")
                         .WithMany()
-                        .HasForeignKey("DoctorId");
+                        .HasForeignKey("DoctorUserId");
 
                     b.Navigation("Department");
 
-                    b.Navigation("Doctor");
+                    b.Navigation("DoctorUser");
                 });
 
             modelBuilder.Entity("HospitalQueueMS.Models.Token", b =>
@@ -372,13 +439,19 @@ namespace HospitalQueueMS.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("HospitalQueueMS.Models.Patient", "Patient")
-                        .WithMany()
+                    b.HasOne("HospitalQueueMS.Models.Department", "Department")
+                        .WithMany("Tokens")
+                        .HasForeignKey("DepartmentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("HospitalQueueMS.Models.Patient", null)
+                        .WithMany("Tokens")
                         .HasForeignKey("PatientId");
 
                     b.Navigation("Clinic");
 
-                    b.Navigation("Patient");
+                    b.Navigation("Department");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -440,6 +513,13 @@ namespace HospitalQueueMS.Migrations
             modelBuilder.Entity("HospitalQueueMS.Models.Department", b =>
                 {
                     b.Navigation("Clinics");
+
+                    b.Navigation("Tokens");
+                });
+
+            modelBuilder.Entity("HospitalQueueMS.Models.Patient", b =>
+                {
+                    b.Navigation("Tokens");
                 });
 #pragma warning restore 612, 618
         }

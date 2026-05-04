@@ -1,0 +1,38 @@
+﻿@model IEnumerable<HospitalQueueMS.Models.Clinic>
+
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Clinics";
+}
+
+<h2>Clinics List</h2>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Clinic Name</th>
+            <th>Department</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var clinic in Model)
+        {
+            <tr>
+                <td>@clinic.ClinicName</td>
+                <td>@clinic.Department?.DepartmentName</td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@clinic.ClinicId" class="btn btn-sm btn-primary">
+                        Edit
+                    </a>
+
+                    <a asp-action="Delete" asp-route-id="@clinic.ClinicId" class="btn btn-sm btn-danger">
+                        Delete
+                    </a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<a asp-action="Create" class="btn btn-primary">Add New Clinic</a>

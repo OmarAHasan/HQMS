@@ -1,0 +1,25 @@
+﻿@model Microsoft.AspNetCore.Identity.IdentityUser
+
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Edit User";
+}
+
+<h2>Edit User</h2>
+
+<form asp-action="Edit" method="post">
+    <input type="hidden" asp-for="Id" />
+
+    <div class="form-group">
+        <label asp-for="UserName"></label>
+        <input asp-for="UserName" class="form-control" />
+    </div>
+
+    <div class="form-group">
+        <label>Role</label>
+        <input type="text" name="role" class="form-control" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Save</button>
+    <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+</form>

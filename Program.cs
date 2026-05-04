@@ -31,26 +31,6 @@ builder.Services.AddSession(options =>
 
 var app = builder.Build();
 
-using (var scope = app.Services.CreateScope())
-{
-    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-    await DataSeeder.SeedRoles(roleManager);
-
-
-if (!await roleManager.RoleExistsAsync("Admin"))
-    {
-        await roleManager.CreateAsync(new IdentityRole("Admin"));
-    }
-    if (!await roleManager.RoleExistsAsync("Doctor"))
-    {
-        await roleManager.CreateAsync(new IdentityRole("Doctor"));
-    }
-    if (!await roleManager.RoleExistsAsync("Reciption"))
-    {
-        await roleManager.CreateAsync(new IdentityRole("Reciption"));
-    }
-}
-
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
@@ -64,6 +44,6 @@ app.MapHub<HospitalQueueMS.Hubs.QueueHub>("/queueHub");
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+    pattern: "{controller=Users}/{action=Login}/{id?}");
 
 app.Run();

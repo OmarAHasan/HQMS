@@ -4,6 +4,8 @@ using HospitalQueueMS.Data;
 using HospitalQueueMS.Models;
 using Microsoft.AspNetCore.SignalR;
 using HospitalQueueMS.Hubs;
+using System.Threading.Tasks;
+using System.Linq;
 
 namespace HospitalQueueMS.Controllers
 {
@@ -18,10 +20,12 @@ namespace HospitalQueueMS.Controllers
             _hubContext = hubContext;
         }
 
+        // GET: Departments
         public async Task<IActionResult> Index()
         {
             return View(await _context.Departments.ToListAsync());
         }
+
         // GET: Departments/Create
         public IActionResult Create()
         {
@@ -37,89 +41,84 @@ namespace HospitalQueueMS.Controllers
             {
                 _context.Departments.Add(department);
                 await _context.SaveChangesAsync();
-                Console.WriteLine("Department created successfully!");
+
+                // تحديث الـ SignalR
+                await _hubContext.Clients.All.SendAsync("UpdateDepartments");
+
                 return RedirectToAction(nameof(Index));
             }
             return View(department);
         }
 
-        public async Task<IActionResult> Edit(int? id) {
-            if (id == null) 
-            {
-                return NotFound(); 
-            }
-            var department = await _context.Departments.FindAsync(id); 
-            if (department == null) 
-            {
-                return NotFound(); 
-            }
-            return View(department); 
+        // GET: Departments/Edit/5
+        public async Task<IActionResult> Edit(int? id)
+        {
+            if (id == null) return NotFound();
+
+            var department = await _context.Departments.FindAsync(id);
+            if (department == null) return NotFound();
+
+            return View(department);
         }
+
         // POST: Departments/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, Department department)
         {
-            if (id != department.DepartmentId) { return NotFound();
-            }
+            if (id != department.DepartmentId) return NotFound();
+
             if (ModelState.IsValid)
             {
-                try 
+                try
                 {
-                    _context.Update(department); await _context.SaveChangesAsync();
-                    Console.WriteLine("Department updated successfully!"); 
+                    _context.Update(department);
+                    await _context.SaveChangesAsync();
+
+                    await _hubContext.Clients.All.SendAsync("UpdateDepartments");
                 }
-                catch (DbUpdateConcurrencyException) 
+                catch (DbUpdateConcurrencyException)
                 {
-                    if (!_context.Departments.Any(e => e.DepartmentId == department.DepartmentId)) 
-                    {
-                        return NotFound(); 
-                    }
-                    else 
-                    {
-                        throw; 
-                    }
-                } 
+                    if (!_context.Departments.Any(e => e.DepartmentId == department.DepartmentId))
+                        return NotFound();
+                    else
+                        throw;
+                }
                 return RedirectToAction(nameof(Index));
-            } 
+            }
             return View(department);
         }
 
         // GET: Departments/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            if (id == null) return NotFound();
 
             var department = await _context.Departments
                 .FirstOrDefaultAsync(m => m.DepartmentId == id);
-            if (department == null)
-            {
-                return NotFound();
-            }
+
+            if (department == null) return NotFound();
 
             return View(department);
         }
 
         // POST: Departments/Delete/5
-        [HttpPost, ActionName("Delete")]
+        [HttpPost, ActionName("DeleteConfirmed")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var department = await _context.Departments.FindAsync(id);
-            if (department != null)
-            {
+            if (department == null)
+            { 
+                return NotFound(); 
+            }
+            
                 _context.Departments.Remove(department);
                 await _context.SaveChangesAsync();
-                Console.WriteLine("Department deleted successfully!");
-            }
+
+                await _hubContext.Clients.All.SendAsync("UpdateDepartments");
+            
             return RedirectToAction(nameof(Index));
         }
-
-
-
-
     }
 }

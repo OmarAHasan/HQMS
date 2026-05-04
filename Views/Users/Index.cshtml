@@ -1,0 +1,33 @@
+﻿@model IEnumerable<HospitalQueueMS.Models.UserViewModel>
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Manage Users";
+}
+<h2>Manage Users</h2>
+
+<div class="mb-3">
+    <a asp-action="Create" class="btn btn-success">Add New User</a>
+</div>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>User Name</th>
+            <th>Role</th>
+            <th style="width:150px;">Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var user in Model)
+        {
+            <tr>
+                <td>@user.Username</td>
+                <td>@string.Join(", ", user.Roles)</td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@user.Id" class="btn btn-sm btn-primary">Edit</a>
+                    <a asp-action="Delete" asp-route-id="@user.Id" class="btn btn-sm btn-danger">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

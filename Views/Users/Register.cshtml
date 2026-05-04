@@ -1,9 +1,11 @@
 ﻿@{
-    ViewBag.Title = "Register";
+    Layout = "_Layout";
+    ViewData["Title"] = "Register";
 }
 
 <h2>Register</h2>
-<form asp-action="Register" method="post">
+
+<form method="post">
     <div>
         <label>Username:</label>
         <input type="text" name="username" />
@@ -12,15 +14,18 @@
         <label>Password:</label>
         <input type="password" name="password" />
     </div>
+    <div>
+        <label>Role:</label>
+        <select name="role">
+            <option value="Admin">Admin</option>
+            <option value="Doctor">Doctor</option>
+            <option value="Reception">Reception</option>
+        </select>
+    </div>
     <button type="submit">Register</button>
 </form>
 
-@if (!ViewData.ModelState.IsValid)
+@if (ViewBag.Error != null)
 {
-    <ul>
-        @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
-        {
-            <li style="color:red">@error.ErrorMessage</li>
-        }
-    </ul>
+    <p style="color:red">@ViewBag.Error</p>
 }

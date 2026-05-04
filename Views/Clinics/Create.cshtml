@@ -1,0 +1,27 @@
+﻿@model HospitalQueueMS.Models.Clinic
+
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Create Clinic";
+}
+
+<h2>Create Clinic</h2>
+
+<form method="post">
+    <div class="form-group">
+        <label>Clinic Name:</label>
+        <input type="text" name="ClinicName" class="form-control" />
+    </div>
+
+    <div class="form-group">
+        <label>Department:</label>
+        <select name="DepartmentId" class="form-control">
+            @foreach (var dept in ViewBag.Departments)
+            {
+                <option value="@dept.Value">@dept.Text</option>
+            }
+        </select>
+    </div>
+
+    <button type="submit" class="btn btn-success">Create Clinic</button>
+</form>

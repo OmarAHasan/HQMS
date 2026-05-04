@@ -1,5 +1,6 @@
 ﻿@model IEnumerable<HospitalQueueMS.Models.Token>
 @{
+    Layout = "_Layout";
     var role = Context.Session.GetString("Role");
 }
 
@@ -8,7 +9,7 @@
 <table class="table">
     <thead>
         <tr>
-            <th>Token ID</th>
+            <th>Patient Number</th>
             <th>Clinic</th>
             <th>Department</th>
             <th>Status</th>
@@ -22,20 +23,20 @@
         @foreach (var token in Model)
         {
             <tr>
-                <td>@token.TokenId</td>
+                <td>@token.TokenNumber</td>
                 <td>@token.Clinic.ClinicName</td>
                 <td>@token.Clinic.Department.DepartmentName</td>
                 <td>@token.Status</td>
                 @if (role == "Doctor" || role == "Admin")
                 {
                     <td>
-                        @if (token.Status == TokenStatus.Waiting)
+                        @if (token.Status == HospitalQueueMS.Models.TokenStatus.Waiting)
                         {
-                            <a asp-action="NextToken" asp-route-id="@token.TokenId" class="btn btn-primary">Call Next</a>
+                            <a asp-action="NextToken" asp-route-tokenNumber="@token.TokenNumber" class="btn btn-sm btn-primary">Call Next</a>
                         }
-                        else if (token.Status == TokenStatus.InProgress)
+                        else if (token.Status == HospitalQueueMS.Models.TokenStatus.InProgress)
                         {
-                            <a asp-action="CompleteToken" asp-route-id="@token.TokenId" class="btn btn-success">Complete</a>
+                            <a asp-action="CompleteToken" asp-route-tokenNumber="@token.TokenNumber" class="btn btn-sm btn-success">Complete</a>
                         }
                     </td>
                 }

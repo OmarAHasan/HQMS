@@ -1,47 +1,97 @@
 ﻿@model IEnumerable<HospitalQueueMS.Models.Token>
 
 @{
+    Layout = "_Layout";
     ViewData["Title"] = "Tokens";
 }
 
-<h2>Tokens</h2>
+<h2>Tokens Queue</h2>
 
-<table class="table">
+<table class="table table-striped">
     <thead>
         <tr>
             <th>Token Number</th>
-            <th>Issued At</th>
-            <th>Patient</th>
+            <th>Department</th>
             <th>Clinic</th>
-            <th>Priority</th>
             <th>Status</th>
+            <th>Priority</th>
+            <th>Created At</th>
         </tr>
     </thead>
     <tbody>
-    @foreach (var item in Model)
-    {
-        <tr>
-            <td>@item.TokenNumber</td>
-            <td>@item.Patient?.FullName</td>
-            <td>@item.Clinic?.ClinicName</td>
-            <td>@item.Priority</td>
-            <td>@item.Status</td>
+        @foreach (var token in Model)
+        {
+            <tr id="row-@token.TokenId">
+                <td>@token.TokenNumber</td>
+                <td>@token.Clinic?.Department?.DepartmentName</td>
+                <td>@token.Clinic?.ClinicName</td>
+                <td>@token.Status</td>
+                <td>@token.Priority</td>
+                <td>@token.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
                 <td>
-                    @if (item.Status == TokenStatus.Waiting)
+                    @if (User.IsInRole("Doctor") || User.IsInRole("Admin"))
                     {
-                        <a asp-action="Call" asp-route-id="@item.TokenId" class="btn btn-warning btn-sm">Call</a>
-                    }
-                    else if (item.Status == TokenStatus.InProgress)
-                    {
-                        <a asp-action="Complete" asp-route-id="@item.TokenId" class="btn btn-success btn-sm">Complete</a>
-                    }
-
-                    <a asp-action="Edit" asp-route-id="@item.TokenId" class="btn btn-primary btn-sm">Edit</a>
-                    <a asp-action="Delete" asp-route-id="@item.TokenId" class="btn btn-danger btn-sm">Delete</a>
+                        if (token.Status == TokenStatus.Waiting)
+                        {
+                            <a href="javascript:void(0);" onclick="callNext(@token.TokenId)" class="btn btn-sm btn-primary">Call Next</a>
+                        }
+                        else if (token.Status == TokenStatus.InProgress)
+                        {
+                            <a href="javascript:void(0);" onclick="completeToken(@token.TokenId)" class="btn btn-sm btn-success">Complete</a>
+                        }
+                   }
+                    <a asp-action="Edit" asp-route-id="@token.TokenId" class="btn btn-warning btn-sm">Edit</a>
+                    <a asp-action="Delete" asp-route-id="@token.TokenId" class="btn btn-danger btn-sm">Delete</a>
                 </td>
          </tr>
+
         }
     </tbody>
 </table>
 
-<a asp-action="Create" class="btn btn-primary">Create New Token</a>
+@if (User.IsInRole("Reception") || User.IsInRole("Admin"))
+{
+    <a asp-controller="Tokens" asp-action="CreateUnified" class="btn btn-success">Create New Token</a>
+}
+
+@section Scripts {
+    <script>
+        function callNext(id) {
+            $.ajax({
+                url: '/Tokens/NextToken',
+                type: 'POST',
+                data: { id: id },
+                      success: function(response) {
+                      if(response.success){
+                        $("#row-"+id+" td:nth-child(4)").text("InProgress");
+                        $("#row-"+id+" td:last").html('<a href="javascript:void(0);" onclick="completeToken('+id+')" class="btn btn-sm btn-success">Complete</a>');
+                      }
+                    else {
+                        alert("لم يتم العثور على التوكن");
+                    }
+                },
+                error: function () {
+                    alert("حصل خطأ أثناء تغيير حالة التوكن");
+                }
+            });
+        }
+
+        function completeToken(id) {
+            $.ajax({
+                url: '/Tokens/CompleteToken',
+                type: 'POST',
+                data: { id: id },
+                success: function (response) {
+                    if (response.success) {
+                        $("#row-" + id).remove();
+                    } else {
+                        alert("لم يتم العثور على التوكن");
+                    }
+                },
+                error: function () {
+                    alert("حصل خطأ أثناء إنهاء التوكن");
+                }
+            });
+        }
+    </script>
+}

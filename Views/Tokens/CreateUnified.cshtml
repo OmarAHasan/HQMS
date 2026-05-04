@@ -1,32 +1,67 @@
 ﻿@model HospitalQueueMS.Models.CreateUnifiedViewModel
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Create Token";
+}
 
-<h2>Create Patient & Token</h2>
+<h2>Create Token</h2>
 
-<form asp-action="CreateUnified" method="post">
-    <div class="form-group">
-        <label asp-for="FullName"></label>
-        <input asp-for="FullName" class="form-control" />
+<form asp-action="CreateUnified" method="post" class="mt-3">
+    <div class="form-group mb-3">
+        <label asp-for="MobileNumber">Mobile Number</label>
+        <input asp-for="MobileNumber" class="form-control"
+               pattern="0[0-9]{9}"
+               title="Phone number should be a Saudi number"
+               required />
     </div>
-
-    <div class="form-group">
-        <label asp-for="PatientCode"></label>
-        <input asp-for="PatientCode" class="form-control" />
-    </div>
-
     <div class="form-group">
         <label asp-for="DepartmentId"></label>
-        <select asp-for="DepartmentId" asp-items="Model.Departments" class="form-control"></select>
+        <select asp-for="DepartmentId" asp-items="Model.Departments" class="form-control" id="DepartmentId"></select>
     </div>
 
     <div class="form-group">
         <label asp-for="ClinicId"></label>
-        <select asp-for="ClinicId" asp-items="Model.Clinics" class="form-control"></select>
+        <select asp-for="ClinicId" class="form-control" id="ClinicId">
+            <option value="">اختر العيادة</option>
+        </select>
     </div>
 
-    <div class="form-group">
-        <label asp-for="Priority"></label>
+    <div class="form-group mb-3">
+        <label asp-for="Priority">Priority</label>
         <select asp-for="Priority" asp-items="Model.Priorities" class="form-control"></select>
     </div>
 
     <button type="submit" class="btn btn-primary">Save</button>
+    <a asp-action="Index" class="btn btn-secondary">Cancel</a>
 </form>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // أول ما الصفحة تفتح، لو فيه قسم مختار مسبقًا، حمّل العيادات
+            var initialDept = $("#DepartmentId").val();
+            if (initialDept) {
+                loadClinics(initialDept);
+            }
+
+            // لما يتغير القسم، حمّل العيادات الخاصة بيه
+            $("#DepartmentId").change(function () {
+                var deptId = $(this).val();
+                loadClinics(deptId);
+            });
+
+            function loadClinics(departmentId) {
+                if (departmentId) {
+                    $.getJSON('/Clinics/GetByDepartment', { departmentId: departmentId }, function (data) {
+                        var clinicDropdown = $("#ClinicId");
+                        clinicDropdown.empty();
+                        clinicDropdown.append($('<option>').text("اختر العيادة").attr('value', ''));
+                        $.each(data, function (i, clinic) {
+                            clinicDropdown.append($('<option>').text(clinic.clinicName).attr('value', clinic.clinicId));
+                        });
+                    });
+                }
+            }
+        });
+    </script>
+}

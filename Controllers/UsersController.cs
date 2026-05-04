@@ -1,99 +1,234 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using HospitalQueueMS.Data;
+using HospitalQueueMS.Models;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace HospitalQueueMS.Controllers
 {
     public class UsersController : Controller
     {
+        private readonly ApplicationDbContext _context;
         private readonly UserManager<IdentityUser> _userManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
         private readonly SignInManager<IdentityUser> _signInManager;
 
-        public UsersController(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager)
+        public UsersController(ApplicationDbContext context,
+                               UserManager<IdentityUser> userManager,
+                               RoleManager<IdentityRole> roleManager,
+                               SignInManager<IdentityUser> signInManager)
         {
+            _context = context;
             _userManager = userManager;
+            _roleManager = roleManager;
             _signInManager = signInManager;
         }
 
-        [HttpGet]
-        public IActionResult Register() => View();
-
-        [HttpPost]
-        public async Task<IActionResult> Register(string username, string password)
+        // GET: Login
+        public IActionResult Login()
         {
-            var user = new IdentityUser { UserName = username };
-            var result = await _userManager.CreateAsync(user, password);
-
-            if (result.Succeeded)
-            {
-                await _signInManager.SignInAsync(user, false);
-                return RedirectToAction("Index", "Home");
-            }
-
-            foreach (var error in result.Errors)
-                ModelState.AddModelError("", error.Description);
-
             return View();
         }
 
-        [HttpGet]
-        public IActionResult Login() => View();
-
+        // POST: Login
         [HttpPost]
         public async Task<IActionResult> Login(string username, string password)
         {
             var result = await _signInManager.PasswordSignInAsync(username, password, false, false);
+
             if (result.Succeeded)
+            {
+                var user = await _userManager.FindByNameAsync(username);
+                var roles = await _userManager.GetRolesAsync(user);
+
+                if (roles.Contains("Admin"))
+                    return RedirectToAction("AdminDashboard", "Home");
+                else if (roles.Contains("Doctor"))
+                    return RedirectToAction("Index", "Tokens");
+                else if (roles.Contains("Reception"))
+                    return RedirectToAction("ReceptionDashboard", "Home");
+
                 return RedirectToAction("Index", "Home");
+            }
 
             ViewBag.Error = "Invalid username or password";
             return View();
         }
 
-        [HttpGet]
-        public async Task<IActionResult> Logout()
+        // GET: Register
+        public IActionResult Register()
         {
-            await _signInManager.SignOutAsync();
-            return RedirectToAction("Login");
+            return View();
         }
 
-        public IActionResult Manage()
-        {
-            var users = _userManager.Users.ToList();
-            return View(users);
-        }
-
-        public IActionResult Index()
-        {
-            return RedirectToAction("Manage");
-        }
-
-        [HttpGet]
-        public IActionResult Create()
-        {
-            return RedirectToAction("CreateUser");
-        }
-
-
-        [HttpGet]
-        public IActionResult CreateUser() => View();
-
+        // POST: Register
         [HttpPost]
-        public async Task<IActionResult> CreateUser(string username, string password, string role)
+        public async Task<IActionResult> Register(string username, string password, string role)
         {
             var user = new IdentityUser { UserName = username };
             var result = await _userManager.CreateAsync(user, password);
 
             if (result.Succeeded)
             {
+                if (!await _roleManager.RoleExistsAsync(role))
+                {
+                    await _roleManager.CreateAsync(new IdentityRole(role));
+                }
+
                 await _userManager.AddToRoleAsync(user, role);
-                return RedirectToAction("Manage");
+                return RedirectToAction("Login");
             }
 
-            foreach (var error in result.Errors)
-                ModelState.AddModelError("", error.Description);
+            ViewBag.Error = "Failed to register user";
+            return View();
+        }
+
+        public async Task<IActionResult> Index()
+        {
+            var users = _userManager.Users.ToList();
+            var model = new List<UserViewModel>();
+
+            foreach (var user in users)
+            {
+                var roles = await _userManager.GetRolesAsync(user);
+                model.Add(new UserViewModel
+                {
+                    Id = user.Id,
+                    Username = user.UserName,
+                    Roles = roles
+                });
+            }
+
+            return View(model);
+        }
+
+
+        // GET: Create User
+        public IActionResult Create()
+        {
+            ViewBag.Roles = new List<SelectListItem>
+    {
+        new SelectListItem { Value = "Admin", Text = "Admin" },
+        new SelectListItem { Value = "Doctor", Text = "Doctor" },
+        new SelectListItem { Value = "Reception", Text = "Reception" }
+    };
+
+            ViewBag.Clinics = _context.Clinics
+                .Select(c => new SelectListItem
+                {
+                    Value = c.ClinicId.ToString(),
+                    Text = c.ClinicName
+                }).ToList();
 
             return View();
+        }
+
+
+        // POST: Create User
+        [HttpPost]
+        public async Task<IActionResult> Create(string username, string password, string role, int? clinicId)
+        {
+            var user = new IdentityUser { UserName = username };
+            var result = await _userManager.CreateAsync(user, password);
+
+            if (result.Succeeded)
+            {
+                // تأكد إن الدور موجود
+                if (!await _roleManager.RoleExistsAsync(role))
+                {
+                    await _roleManager.CreateAsync(new IdentityRole(role));
+                }
+
+                // اربط اليوزر بالدور
+                await _userManager.AddToRoleAsync(user, role);
+
+                // لو الدور Doctor اربطه بالعيادة
+                if (role == "Doctor" && clinicId.HasValue)
+                {
+                    var clinic = _context.Clinics.Find(clinicId.Value);
+                    if (clinic != null)
+                    {
+                        clinic.DoctorUserId = user.Id;
+                        _context.Clinics.Update(clinic);
+                        _context.SaveChanges();
+                    }
+                }
+
+                return RedirectToAction("Index");
+            }
+
+            ViewBag.Error = string.Join(", ", result.Errors.Select(e => e.Description));
+            return View();
+        }
+
+
+        // GET
+        public async Task<IActionResult> Edit(string id)
+        {
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null) return NotFound();
+
+            return View(user);
+        }
+
+        // POST
+        [HttpPost]
+        public async Task<IActionResult> Edit(string id, string username, string role)
+        {
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null) return NotFound();
+
+            user.UserName = username;
+            var result = await _userManager.UpdateAsync(user);
+
+            if (result.Succeeded)
+            {
+                // تحديث الدور
+                var currentRoles = await _userManager.GetRolesAsync(user);
+                await _userManager.RemoveFromRolesAsync(user, currentRoles);
+                await _userManager.AddToRoleAsync(user, role);
+
+                return RedirectToAction("Index");
+            }
+
+            ViewBag.Error = string.Join(", ", result.Errors.Select(e => e.Description));
+            return View(user);
+        }
+
+        // GET
+        public async Task<IActionResult> Delete(string id)
+        {
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null) return NotFound();
+
+            return View(user);
+        }
+
+        // POST
+        [HttpPost, ActionName("DeleteConfirmed")]
+        public async Task<IActionResult> DeleteConfirmed(string id)
+        {
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null) return NotFound();
+
+            var result = await _userManager.DeleteAsync(user);
+            if (result.Succeeded)
+            {
+                return RedirectToAction("Index");
+            }
+
+            ViewBag.Error = string.Join(", ", result.Errors.Select(e => e.Description));
+            return View(user);
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Logout()
+        {
+            // استخدم الـ scheme الصحيح بتاع Identity
+            await HttpContext.SignOutAsync("Identity.Application");
+
+            return RedirectToAction("Login", "Users");
         }
 
     }

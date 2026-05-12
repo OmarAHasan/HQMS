@@ -12,27 +12,26 @@ namespace HospitalQueueMS.Controllers
     public class DepartmentsController : Controller
     {
         private readonly ApplicationDbContext _context;
-        private readonly IHubContext<QueueHub> _hubContext;
+        private readonly IHubContext<WaitingRoomHub> _hubContext;
 
-        public DepartmentsController(ApplicationDbContext context, IHubContext<QueueHub> hubContext)
+        public DepartmentsController(ApplicationDbContext context, IHubContext<WaitingRoomHub> hubContext)
         {
             _context = context;
             _hubContext = hubContext;
-        }
+        } 
 
-        // GET: Departments
+        // GET
         public async Task<IActionResult> Index()
         {
             return View(await _context.Departments.ToListAsync());
         }
 
-        // GET: Departments/Create
+        // GET
         public IActionResult Create()
         {
             return View();
         }
 
-        // POST: Departments/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Department department)
@@ -42,7 +41,7 @@ namespace HospitalQueueMS.Controllers
                 _context.Departments.Add(department);
                 await _context.SaveChangesAsync();
 
-                // تحديث الـ SignalR
+                // الخاص بالتحديث SignalR
                 await _hubContext.Clients.All.SendAsync("UpdateDepartments");
 
                 return RedirectToAction(nameof(Index));
@@ -50,7 +49,7 @@ namespace HospitalQueueMS.Controllers
             return View(department);
         }
 
-        // GET: Departments/Edit/5
+        // GET
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null) return NotFound();
@@ -61,7 +60,7 @@ namespace HospitalQueueMS.Controllers
             return View(department);
         }
 
-        // POST: Departments/Edit/5
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, Department department)
@@ -89,7 +88,7 @@ namespace HospitalQueueMS.Controllers
             return View(department);
         }
 
-        // GET: Departments/Delete/5
+        // GET
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null) return NotFound();
@@ -102,7 +101,7 @@ namespace HospitalQueueMS.Controllers
             return View(department);
         }
 
-        // POST: Departments/Delete/5
+
         [HttpPost, ActionName("DeleteConfirmed")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)

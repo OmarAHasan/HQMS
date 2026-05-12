@@ -1,46 +1,39 @@
 ﻿@model IEnumerable<HospitalQueueMS.Models.Token>
+
 @{
     Layout = "_Layout";
-    var role = Context.Session.GetString("Role");
+    ViewData["Title"] = "Waiting Room";
 }
 
-<h2>Waiting Room</h2>
+<h2 class="text-center mb-4">Waiting Room</h2>
 
-<table class="table">
-    <thead>
-        <tr>
-            <th>Patient Number</th>
-            <th>Clinic</th>
-            <th>Department</th>
-            <th>Status</th>
-            @if (role == "Doctor" || role == "Admin")
-            {
-                <th>Actions</th>
-            }
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var token in Model)
-        {
-            <tr>
-                <td>@token.TokenNumber</td>
-                <td>@token.Clinic.ClinicName</td>
-                <td>@token.Clinic.Department.DepartmentName</td>
-                <td>@token.Status</td>
-                @if (role == "Doctor" || role == "Admin")
-                {
-                    <td>
-                        @if (token.Status == HospitalQueueMS.Models.TokenStatus.Waiting)
-                        {
-                            <a asp-action="NextToken" asp-route-tokenNumber="@token.TokenNumber" class="btn btn-sm btn-primary">Call Next</a>
-                        }
-                        else if (token.Status == HospitalQueueMS.Models.TokenStatus.InProgress)
-                        {
-                            <a asp-action="CompleteToken" asp-route-tokenNumber="@token.TokenNumber" class="btn btn-sm btn-success">Complete</a>
-                        }
-                    </td>
+<div id="waitingRoomContainer">
+    @Html.Partial("_WaitingRoomTable", Model)
+</div>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
+    <script>
+        var connection = new signalR.HubConnectionBuilder()
+            .withUrl("/waitingRoomHub")
+            .build();
+
+        connection.on("UpdateWaitingList", function () {
+            reloadWaitingRoom();
+        });
+
+        connection.start().catch(function (err) {
+            return console.error(err.toString());
+        });
+
+        function reloadWaitingRoom() {
+            $.ajax({
+                url: '/Tokens/WaitingRoomPartial',
+                type: 'GET',
+                success: function (data) {
+                    $("#waitingRoomContainer").html(data);
                 }
-            </tr>
+            });
         }
-    </tbody>
-</table>
+    </script>
+}

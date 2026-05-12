@@ -1,31 +1,29 @@
 ﻿@model IEnumerable<HospitalQueueMS.Models.Token>
 @{
-    Layout = "_Layout";
-    ViewData["Title"] = "Create Token";
+    Layout = null;
 }
-<h2>Completed Tokens</h2>
 
 <table class="table table-striped">
     <thead>
         <tr>
             <th>Token Number</th>
-            <th>Mobile Number</th>
             <th>Department</th>
             <th>Clinic</th>
+            <th>Status</th>
             <th>Priority</th>
-            <th>Completed At</th>
+            <th>Created At</th>
         </tr>
     </thead>
     <tbody>
         @foreach (var token in Model)
         {
-            <tr>
+            <tr id="row-@token.TokenId">
                 <td>@token.TokenCode</td>
-                <td>@token.MobileNumber</td>
-                <td>@token.Clinic.Department.DepartmentName</td>
-                <td>@token.Clinic.ClinicName</td>
+                <td>@token.Clinic?.Department?.DepartmentName</td>
+                <td>@token.Clinic?.ClinicName</td>
+                <td>@token.Status</td>
                 <td>@token.Priority</td>
-                <td>@token.CompletedAt?.ToString("dd/MM/yyyy HH:mm")</td>
+                <td>@token.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
             </tr>
         }
     </tbody>

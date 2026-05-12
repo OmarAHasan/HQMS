@@ -12,12 +12,12 @@ namespace HospitalQueueMS.Controllers
     public class TokensController : Controller
     {
         private readonly ApplicationDbContext _context;
-        private readonly IHubContext<QueueHub> _hubContext;
+        private readonly IHubContext<WaitingRoomHub> _hubContext;
         private readonly UserManager<IdentityUser> _userManager;
 
         public TokensController(ApplicationDbContext context,
-                                IHubContext<QueueHub> hubContext,
-                                UserManager<IdentityUser> userManager)
+                          IHubContext<WaitingRoomHub> hubContext,
+                          UserManager<IdentityUser> userManager)
         {
             _context = context;
             _hubContext = hubContext;
@@ -41,22 +41,22 @@ namespace HospitalQueueMS.Controllers
 
 
         }
+
         [HttpPost]
         public IActionResult Create(int clinicId)
         {
-            // نجيب القسم المرتبط بالعيادة
             var clinic = _context.Clinics
                 .Include(c => c.Department)
                 .FirstOrDefault(c => c.ClinicId == clinicId);
 
             if (clinic == null) return NotFound();
 
-            int departmentId = clinic.DepartmentId;
+            string prefix = clinic.Department.Prefix ?? "X";
 
-            // نجيب آخر توكن في نفس القسم (بغض النظر عن العيادة)
             var lastToken = _context.Tokens
                 .Include(t => t.Clinic)
-                .Where(t => t.Clinic.DepartmentId == departmentId)
+                .ThenInclude(c => c.Department)
+                .Where(t => t.Clinic.DepartmentId == clinic.DepartmentId)
                 .OrderByDescending(t => t.TokenNumber)
                 .FirstOrDefault();
 
@@ -65,27 +65,27 @@ namespace HospitalQueueMS.Controllers
             var token = new Token
             {
                 ClinicId = clinicId,
-                DepartmentId = departmentId,
                 TokenNumber = nextNumber,
+                TokenCode = $"{prefix}-{nextNumber}", 
                 CreatedAt = DateTime.Now,
-                Status = TokenStatus.Waiting,
-                Priority = "Normal"
+                Status = TokenStatus.Waiting
             };
 
             _context.Tokens.Add(token);
+            Console.WriteLine($"TokenCode: {token.TokenCode}");
+
             _context.SaveChanges();
 
-            ViewBag.TokenNumber = nextNumber;
-            return View("TokenCreated", token);
+            return RedirectToAction("WaitingRoom");
         }
 
-        // عرض كل التوكنز (Manage Tokens)
+
         public IActionResult Index()
         {
             var tokens = _context.Tokens
                 .Include(t => t.Clinic)
                 .ThenInclude(c => c.Department)
-                .Where(t => t.Status == TokenStatus.Waiting || t.Status == TokenStatus.InProgress) // ✅ فلترة
+                .Where(t => t.Status == TokenStatus.Waiting || t.Status == TokenStatus.InProgress) 
                 .ToList();
 
             if (User.IsInRole("Doctor"))
@@ -102,14 +102,13 @@ namespace HospitalQueueMS.Controllers
                     tokens = new List<Token>(); // لو الدكتور مش مربوط بعيادة
                 }
             }
-            // لو Admin → يشوف الكل عادي
+            //  في حالة الادمن فايقدر يشوف الكل عادي
 
             return View(tokens);
         }
 
 
 
-        // شاشة الانتظار (تتغير حسب الـ Role)
         public IActionResult WaitingRoom()
         {
             var tokens = _context.Tokens
@@ -162,22 +161,24 @@ namespace HospitalQueueMS.Controllers
         {
             if (ModelState.IsValid)
             {
-                // تحقق من رقم الموبايل: لازم يبدأ بـ 0 ويكون 10 أرقام
+                // check ان الرقم سعودي 
                 if (string.IsNullOrEmpty(vm.MobileNumber) ||
                     !System.Text.RegularExpressions.Regex.IsMatch(vm.MobileNumber, @"^0\d{9}$"))
                 {
-                    ModelState.AddModelError("MobileNumber", "Phne number must be a Saudi number");
+                    ModelState.AddModelError("MobileNumber", "Phone number must be a Saudi number");
                     return View(vm);
                 }
 
-                // حساب رقم التوكن بناءً على القسم
+                var today = DateTime.Today;
+
                 var lastToken = _context.Tokens
-                    .Where(t => t.DepartmentId == vm.DepartmentId)
+                    .Where(t => t.DepartmentId == vm.DepartmentId && t.CreatedAt.Date == today)
                     .OrderByDescending(t => t.TokenNumber)
                     .FirstOrDefault();
 
                 int nextNumber = lastToken != null ? lastToken.TokenNumber + 1 : 1;
 
+                // تحديد العيادة كل مريض 
                 int clinicId;
                 if (vm.ClinicId.HasValue)
                 {
@@ -200,6 +201,10 @@ namespace HospitalQueueMS.Controllers
                     }
                 }
 
+                // جِب الـ Department علشان نطلع الـ Prefix 
+                var department = _context.Departments.FirstOrDefault(d => d.DepartmentId == vm.DepartmentId);
+                string prefix = !string.IsNullOrEmpty(department?.Prefix) ? department.Prefix : "X";
+
                 var token = new Token
                 {
                     ClinicId = clinicId,
@@ -208,19 +213,23 @@ namespace HospitalQueueMS.Controllers
                     TokenNumber = nextNumber,
                     CreatedAt = DateTime.Now,
                     Status = TokenStatus.Waiting,
-                    Priority = vm.Priority
+                    Priority = vm.Priority,
+                    TokenCode = $"{prefix}-{nextNumber}" //  كل يوم يبدأ العد من جديد 
                 };
+
+
 
                 _context.Tokens.Add(token);
                 _context.SaveChanges();
-
+                _hubContext.Clients.All.SendAsync("UpdateDepartments");
                 _hubContext.Clients.All.SendAsync("UpdateWaitingList");
-
-                return RedirectToAction("WaitingRoom");
+                return RedirectToAction("Index", "Home");
             }
 
             return View(vm);
         }
+
+
 
 
         public IActionResult GetClinicsByDepartment(int departmentId)
@@ -236,7 +245,7 @@ namespace HospitalQueueMS.Controllers
             return Json(clinics);
         }
 
-        // استدعاء المريض التالي
+        // استدعاء المريض الي عليه الدور 
         [HttpPost]
         public IActionResult NextToken(int id)
         {
@@ -250,6 +259,7 @@ namespace HospitalQueueMS.Controllers
                 token.Status = TokenStatus.InProgress;
                 _context.Update(token);
                 _context.SaveChanges();
+                _hubContext.Clients.All.SendAsync("UpdateDepartments");
                 _hubContext.Clients.All.SendAsync("UpdateWaitingList");
                 return Json(new { success = true, tokenId = id });
             }
@@ -259,13 +269,9 @@ namespace HospitalQueueMS.Controllers
 
 
 
-        // إنهاء المريض الحالي
         [HttpPost]
         public IActionResult CompleteToken(int id)
         {
-            // اطبع القيمة اللي وصلت
-            Console.WriteLine($"وصل CompleteToken بالـ id = {id}");
-
             var token = _context.Tokens.FirstOrDefault(t => t.TokenId == id);
             if (token != null)
             {
@@ -273,12 +279,36 @@ namespace HospitalQueueMS.Controllers
                 token.CompletedAt = DateTime.Now;
                 _context.Update(token);
                 _context.SaveChanges();
+                _hubContext.Clients.All.SendAsync("UpdateDepartments");
                 _hubContext.Clients.All.SendAsync("UpdateWaitingList");
                 return Json(new { success = true, tokenId = id });
             }
 
             return Json(new { success = false });
         }
+        public IActionResult TokensPartial()
+        {
+            var tokens = _context.Tokens
+                .Include(t => t.Clinic)
+                .ThenInclude(c => c.Department)
+                .Where(t => t.Status == TokenStatus.Waiting || t.Status == TokenStatus.InProgress)
+                .ToList();
+
+            return PartialView("_TokensTable", tokens);
+        }
+
+        public IActionResult WaitingRoomPartial()
+        {
+            var tokens = _context.Tokens
+                .Include(t => t.Clinic)
+                .Include(t => t.Department)
+                .Where(t => t.Status == TokenStatus.Waiting || t.Status == TokenStatus.InProgress)
+                .ToList();
+
+            return PartialView("_WaitingRoomTable", tokens);
+        }
+
+
 
         public IActionResult CompletedTokens()
         {
@@ -302,7 +332,7 @@ namespace HospitalQueueMS.Controllers
                     tokens = new List<Token>(); // لو الدكتور مش مربوط بعيادة
                 }
             }
-            // لو Admin أو Reception → يشوف الكل عادي
+            // هنا لو ادمن او ريسيبشن يشووف الكل عادي
 
             return View(tokens);
         }

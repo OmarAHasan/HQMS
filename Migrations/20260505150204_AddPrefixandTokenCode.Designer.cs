@@ -4,6 +4,7 @@ using HospitalQueueMS.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HospitalQueueMS.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260505150204_AddPrefixandTokenCode")]
+    partial class AddPrefixandTokenCode
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -284,13 +287,13 @@ namespace HospitalQueueMS.Migrations
                         {
                             Id = "10",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "815216ec-f673-49e5-baef-569f5909a450",
+                            ConcurrencyStamp = "b5542224-b8af-4324-8f38-6aefd7fca625",
                             EmailConfirmed = false,
                             LockoutEnabled = false,
                             NormalizedUserName = "ADMIN",
-                            PasswordHash = "AQAAAAIAAYagAAAAEHEZzOpy4FDpVpLwYF3ZfElBaQjmOItNLzQJD9zYwH0sQt0VIczsjNDQ13vyq0j9rw==",
+                            PasswordHash = "AQAAAAIAAYagAAAAENpataqJRH1n+Qbj0OmnyFdwH1XUl6MHFZCF/FkV9XAPYxOD+ABui0ENkBaMGn2Zbw==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "281c95fb-ee71-4a29-856b-feb756300b8e",
+                            SecurityStamp = "760842db-2545-41e4-a717-06671dfa3fa7",
                             TwoFactorEnabled = false,
                             UserName = "admin"
                         },
@@ -298,13 +301,13 @@ namespace HospitalQueueMS.Migrations
                         {
                             Id = "11",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "6b508dc1-946b-4e83-846d-bf7760016c65",
+                            ConcurrencyStamp = "92af0f00-f734-4b60-8b32-3cdc792a424b",
                             EmailConfirmed = false,
                             LockoutEnabled = false,
                             NormalizedUserName = "DOCTOR",
-                            PasswordHash = "AQAAAAIAAYagAAAAEFhkycMQLazPov1Xr90ukQ2V6a0iEtLVaFcKUEeRYHc7LftPyqtRKYqkEH4jiK/onw==",
+                            PasswordHash = "AQAAAAIAAYagAAAAENz6RiSHW7IQN7Gk7cwT19lZrXCjLazpoNqmHUgn6+qSM/G0x+rk0i6qWVYkCPUqpw==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "e32a7bd4-4235-435f-b864-48ce83b405eb",
+                            SecurityStamp = "ed310e58-969e-4d3f-976b-5ca3021d0cfb",
                             TwoFactorEnabled = false,
                             UserName = "doctor"
                         },
@@ -312,13 +315,13 @@ namespace HospitalQueueMS.Migrations
                         {
                             Id = "12",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "048dd586-f254-40ca-a0c1-9a19a4b78abe",
+                            ConcurrencyStamp = "22da11eb-c4fb-4899-8a9e-677435bbf2b6",
                             EmailConfirmed = false,
                             LockoutEnabled = false,
                             NormalizedUserName = "RECEPTION",
-                            PasswordHash = "AQAAAAIAAYagAAAAENUDa7J4GByo3N7DDE2Cet/q/E3SJVpJeh05M9qly7tIKP5gyOLkmscbiWpG7X8fVA==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEN9pJaaDVrhTELDVbeYf5bccrvBwXRGE+2P2zVMjBAfDF9ck3Xn2Enb69N6xKnsjJQ==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "d589cb0c-4fcd-41af-aadb-001aa5ddbf2c",
+                            SecurityStamp = "4cac73ec-ce6f-4c4b-8bfb-e550eba0896e",
                             TwoFactorEnabled = false,
                             UserName = "reception"
                         });

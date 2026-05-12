@@ -52,9 +52,9 @@ namespace HospitalQueueMS.Data
 
             // Assign Roles to Users
             builder.Entity<IdentityUserRole<string>>().HasData(
-                new IdentityUserRole<string> { UserId = "10", RoleId = "1" }, // admin -> Admin
-                new IdentityUserRole<string> { UserId = "11", RoleId = "2" }, // doctor -> Doctor
-                new IdentityUserRole<string> { UserId = "12", RoleId = "3" }  // reception -> Reception
+                new IdentityUserRole<string> { UserId = "10", RoleId = "1" }, 
+                new IdentityUserRole<string> { UserId = "11", RoleId = "2" }, 
+                new IdentityUserRole<string> { UserId = "12", RoleId = "3" }  
             );
         }
     }

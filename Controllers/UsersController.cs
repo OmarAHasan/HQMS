@@ -25,13 +25,12 @@ namespace HospitalQueueMS.Controllers
             _signInManager = signInManager;
         }
 
-        // GET: Login
+        // GET
         public IActionResult Login()
         {
             return View();
         }
 
-        // POST: Login
         [HttpPost]
         public async Task<IActionResult> Login(string username, string password)
         {
@@ -56,33 +55,33 @@ namespace HospitalQueueMS.Controllers
             return View();
         }
 
-        // GET: Register
-        public IActionResult Register()
-        {
-            return View();
-        }
+        //// GET
+        //public IActionResult Register()
+        //{
+        //    return View();
+        //}
 
-        // POST: Register
-        [HttpPost]
-        public async Task<IActionResult> Register(string username, string password, string role)
-        {
-            var user = new IdentityUser { UserName = username };
-            var result = await _userManager.CreateAsync(user, password);
+        //// POST: Register
+        //[HttpPost]
+        //public async Task<IActionResult> Register(string username, string password, string role)
+        //{
+        //    var user = new IdentityUser { UserName = username };
+        //    var result = await _userManager.CreateAsync(user, password);
 
-            if (result.Succeeded)
-            {
-                if (!await _roleManager.RoleExistsAsync(role))
-                {
-                    await _roleManager.CreateAsync(new IdentityRole(role));
-                }
+        //    if (result.Succeeded)
+        //    {
+        //        if (!await _roleManager.RoleExistsAsync(role))
+        //        {
+        //            await _roleManager.CreateAsync(new IdentityRole(role));
+        //        }
 
-                await _userManager.AddToRoleAsync(user, role);
-                return RedirectToAction("Login");
-            }
+        //        await _userManager.AddToRoleAsync(user, role);
+        //        return RedirectToAction("Login");
+        //    }
 
-            ViewBag.Error = "Failed to register user";
-            return View();
-        }
+        //    ViewBag.Error = "Failed to register user";
+        //    return View();
+        //}
 
         public async Task<IActionResult> Index()
         {
@@ -104,7 +103,7 @@ namespace HospitalQueueMS.Controllers
         }
 
 
-        // GET: Create User
+        // GET
         public IActionResult Create()
         {
             ViewBag.Roles = new List<SelectListItem>
@@ -124,8 +123,6 @@ namespace HospitalQueueMS.Controllers
             return View();
         }
 
-
-        // POST: Create User
         [HttpPost]
         public async Task<IActionResult> Create(string username, string password, string role, int? clinicId)
         {
@@ -134,16 +131,16 @@ namespace HospitalQueueMS.Controllers
 
             if (result.Succeeded)
             {
-                // تأكد إن الدور موجود
+                // التأكد من الصلاحية 
                 if (!await _roleManager.RoleExistsAsync(role))
                 {
                     await _roleManager.CreateAsync(new IdentityRole(role));
                 }
 
-                // اربط اليوزر بالدور
+                // ربطها باليوزر 
                 await _userManager.AddToRoleAsync(user, role);
 
-                // لو الدور Doctor اربطه بالعيادة
+                // لو الصلاحية دكتور اربطه بالعيادة
                 if (role == "Doctor" && clinicId.HasValue)
                 {
                     var clinic = _context.Clinics.Find(clinicId.Value);
@@ -172,7 +169,6 @@ namespace HospitalQueueMS.Controllers
             return View(user);
         }
 
-        // POST
         [HttpPost]
         public async Task<IActionResult> Edit(string id, string username, string role)
         {
@@ -205,7 +201,6 @@ namespace HospitalQueueMS.Controllers
             return View(user);
         }
 
-        // POST
         [HttpPost, ActionName("DeleteConfirmed")]
         public async Task<IActionResult> DeleteConfirmed(string id)
         {
@@ -225,7 +220,6 @@ namespace HospitalQueueMS.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Logout()
         {
-            // استخدم الـ scheme الصحيح بتاع Identity
             await HttpContext.SignOutAsync("Identity.Application");
 
             return RedirectToAction("Login", "Users");

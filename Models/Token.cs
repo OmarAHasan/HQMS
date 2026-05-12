@@ -4,6 +4,8 @@
     {
         public int TokenId { get; set; }
         public int TokenNumber { get; set; }
+
+        public string TokenCode { get; set; }
         public int DepartmentId { get; set; }
         public int ClinicId { get; set; }
         public string? MobileNumber { get; set; } 
@@ -14,7 +16,6 @@
         public Clinic Clinic { get; set; }
         public Department Department { get; set; }
 
-        // الأولوية
         public string Priority { get; set; } = "Normal";
     }
 

@@ -7,47 +7,9 @@
 
 <h2>Tokens Queue</h2>
 
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>Token Number</th>
-            <th>Department</th>
-            <th>Clinic</th>
-            <th>Status</th>
-            <th>Priority</th>
-            <th>Created At</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var token in Model)
-        {
-            <tr id="row-@token.TokenId">
-                <td>@token.TokenNumber</td>
-                <td>@token.Clinic?.Department?.DepartmentName</td>
-                <td>@token.Clinic?.ClinicName</td>
-                <td>@token.Status</td>
-                <td>@token.Priority</td>
-                <td>@token.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
-                <td>
-                    @if (User.IsInRole("Doctor") || User.IsInRole("Admin"))
-                    {
-                        if (token.Status == TokenStatus.Waiting)
-                        {
-                            <a href="javascript:void(0);" onclick="callNext(@token.TokenId)" class="btn btn-sm btn-primary">Call Next</a>
-                        }
-                        else if (token.Status == TokenStatus.InProgress)
-                        {
-                            <a href="javascript:void(0);" onclick="completeToken(@token.TokenId)" class="btn btn-sm btn-success">Complete</a>
-                        }
-                   }
-                    <a asp-action="Edit" asp-route-id="@token.TokenId" class="btn btn-warning btn-sm">Edit</a>
-                    <a asp-action="Delete" asp-route-id="@token.TokenId" class="btn btn-danger btn-sm">Delete</a>
-                </td>
-         </tr>
-
-        }
-    </tbody>
-</table>
+<div id="tokensTableContainer">
+    @Html.Partial("_TokensTable", Model)
+</div>
 
 @if (User.IsInRole("Reception") || User.IsInRole("Admin"))
 {
@@ -55,19 +17,58 @@
 }
 
 @section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
     <script>
-        function callNext(id) {
+
+        var connection = new signalR.HubConnectionBuilder()
+            .withUrl("/waitingRoomHub") 
+            .build();
+
+        connection.on("UpdateWaitingList", function () {
+            reloadTokens(); 
+        });
+
+        connection.start().catch(function (err) {
+            return console.error(err.toString());
+        });
+
+        function reloadTokens() {
+            $.ajax({
+                url: '/Tokens/TokensPartial',
+                type: 'GET',
+                success: function (data) {
+                    $("#tokensTableContainer").html(data);
+                }
+            });
+        }
+                 function announcePatient(tokenCode, clinicName) {
+
+            var msg = new SpeechSynthesisUtterance("Patient number " + tokenCode + " please enter " + clinicName);
+            msg.lang = "en-UK"; 
+
+            var voices = window.speechSynthesis.getVoices();
+            var arabicVoice = voices.find(v => v.lang.startsWith("en"));
+            if (arabicVoice) {
+                msg.voice = arabicVoice;
+            }
+             msg.rate = 0.7;
+
+            window.speechSynthesis.speak(msg);
+        }
+
+        function callNext(id, tokenCode, clinicName) {
             $.ajax({
                 url: '/Tokens/NextToken',
                 type: 'POST',
                 data: { id: id },
-                      success: function(response) {
-                      if(response.success){
+                success: function(response) {
+                    if(response.success){
                         $("#row-"+id+" td:nth-child(4)").text("InProgress");
-                        $("#row-"+id+" td:last").html('<a href="javascript:void(0);" onclick="completeToken('+id+')" class="btn btn-sm btn-success">Complete</a>');
-                      }
-                    else {
-                        alert("لم يتم العثور على التوكن");
+                        $("#row-"+id+" td:last").html(
+                            '<a href="javascript:void(0);" onclick="completeToken('+id+')" class="btn btn-sm btn-success">Complete</a>'
+                        );
+
+                        announcePatient(tokenCode, clinicName);
                     }
                 },
                 error: function () {
@@ -75,6 +76,8 @@
                 }
             });
         }
+
+
 
         function completeToken(id) {
             $.ajax({

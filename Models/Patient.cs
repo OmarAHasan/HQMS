@@ -8,7 +8,6 @@ namespace HospitalQueueMS.Models
         public string FullName { get; set; }
         public string PatientCode { get; set; }
 
-        // العلاقة مع التوكينز
         public ICollection<Token> Tokens { get; set; }
     }
 }

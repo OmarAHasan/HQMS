@@ -31,6 +31,8 @@
         <select asp-for="Priority" asp-items="Model.Priorities" class="form-control"></select>
     </div>
 
+    <input type="hidden" asp-for="TokenCode" />
+
     <button type="submit" class="btn btn-primary">Save</button>
     <a asp-action="Index" class="btn btn-secondary">Cancel</a>
 </form>
@@ -38,7 +40,8 @@
 @section Scripts {
     <script>
         $(document).ready(function () {
-            // أول ما الصفحة تفتح، لو فيه قسم مختار مسبقًا، حمّل العيادات
+
+            // أول ما الصفحة تفتح، لو فيه قسم مختار قبل كده ، حمّل العيادات
             var initialDept = $("#DepartmentId").val();
             if (initialDept) {
                 loadClinics(initialDept);

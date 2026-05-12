@@ -15,14 +15,12 @@ namespace HospitalQueueMS.Controllers
             _context = context;
         }
 
-        // عرض كل العيادات
         public IActionResult Index()
         {
             var clinics = _context.Clinics.Include(c => c.Department).ToList();
             return View(clinics);
         }
 
-        // إنشاء عيادة جديدة (GET)
         public IActionResult Create()
         {
             ViewBag.Departments = _context.Departments
@@ -35,7 +33,6 @@ namespace HospitalQueueMS.Controllers
             return View();
         }
 
-        // إنشاء عيادة جديدة (POST)
         [HttpPost]
         public IActionResult Create(Clinic clinic)
         {
@@ -55,6 +52,7 @@ namespace HospitalQueueMS.Controllers
 
             return View(clinic);
         }
+
         [HttpGet]
         public IActionResult GetByDepartment(int departmentId)
         {
@@ -66,7 +64,7 @@ namespace HospitalQueueMS.Controllers
             return Json(clinics);
         }
 
-        // GET: Clinics/Edit/5
+        // GET
         public IActionResult Edit(int id)
         {
             var clinic = _context.Clinics.Find(id);
@@ -99,7 +97,8 @@ namespace HospitalQueueMS.Controllers
         {
             return RedirectToAction("Index");
         }
-        // GET: Clinics/Delete/5
+
+        // GET
         public IActionResult Delete(int id)
         {
             var clinic = _context.Clinics
@@ -111,7 +110,7 @@ namespace HospitalQueueMS.Controllers
             return View(clinic);
         }
 
-        // POST: Clinics/DeleteConfirmed/5
+
         [HttpPost, ActionName("DeleteConfirmed")]
         public IActionResult DeleteConfirmed(int id)
         {

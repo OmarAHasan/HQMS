@@ -3,10 +3,19 @@
     ViewData["Title"] = "Doctor Dashboard";
 }
 
-<div class="container mt-5">
-    <h2 class="mb-4 text-success">Doctor Dashboard</h2>
-    <div class="list-group">
+<h2 class="mb-4 text-primary">Doctor Dashboard</h2>
+
+<div class="row">
+    <div class="col-md-9">
+        <div class="list-group">
         <a class="list-group-item list-group-item-action btn btn-info" asp-controller="Tokens" asp-action="Index">Manage Tokens / Queue</a>
+        </div>
+    </div>
+
+    <!-- sidebar -->
+    <div class="col-md-3">
+        @await Component.InvokeAsync("Stats")
     </div>
 </div>
+
 

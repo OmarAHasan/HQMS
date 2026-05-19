@@ -1,13 +1,20 @@
-﻿<div class="container mt-5">
-    @{
+﻿ @{
         Layout = "_Layout";
         ViewData["Title"] = "Reception Dashboard";
     }
-    
-    <h2 class="mb-4 text-info">Reception Dashboard</h2>
-    <div class="list-group">
+
+<h2 class="mb-4 text-primary">Reception Dashboard</h2>
+
+    <div class="row">
+        <div class="col-md-9">
+            <div class="list-group">
         <a class="list-group-item list-group-item-action btn btn-info" asp-controller="Tokens" asp-action="Index">Manage Tokens</a>
         <a class="list-group-item list-group-item-action btn btn-info" asp-controller="Clinics" asp-action="Index">View Clinics</a>
-        <a asp-controller="Tokens" asp-action="CreateUnified" class="btn btn-success">Generate Token</a>
+            <a asp-controller="Tokens" asp-action="CreateUnified" class="btn btn-primary">Generate Token</a>
     </div>
 </div>
+        <!-- sidebar -->
+        <div class="col-md-3">
+        @await Component.InvokeAsync("Stats")
+    </div>
+    </div>

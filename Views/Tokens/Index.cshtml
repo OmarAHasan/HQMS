@@ -64,6 +64,7 @@
                 success: function(response) {
                     if(response.success){
                         $("#row-"+id+" td:nth-child(4)").text("InProgress");
+                         $("#row-" + response.tokenId).addClass("flash-row");
                         $("#row-"+id+" td:last").html(
                             '<a href="javascript:void(0);" onclick="completeToken('+id+')" class="btn btn-sm btn-success">Complete</a>'
                         );

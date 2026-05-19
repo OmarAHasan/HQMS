@@ -14,24 +14,44 @@
 @section Scripts {
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
     <script>
+                     var clinicId = "@ViewBag.ClinicId";
+        console.log("ClinicId from ViewBag: " + clinicId);
         var connection = new signalR.HubConnectionBuilder()
-            .withUrl("/waitingRoomHub")
+            .withUrl("/waitingRoomHub?clinicId=" + clinicId)
             .build();
 
-        connection.on("UpdateWaitingList", function () {
-            reloadWaitingRoom();
-        });
 
-        connection.start().catch(function (err) {
+
+        connection.start().then(function () {
+            console.log("SignalR Connected");
+        }).catch(function (err) {
             return console.error(err.toString());
         });
 
-        function reloadWaitingRoom() {
+        // تحديث الجدول فقط
+        connection.on("UpdateWaitingList", function () {
+            reloadWaitingRoom();
+        });
+                connection.on("UpdateWaitingList", function () {
+            console.log("UpdateWaitingList signal received");
+            reloadWaitingRoom();
+        });
+
+                   function reloadWaitingRoom() {
             $.ajax({
-                url: '/Tokens/WaitingRoomPartial',
+                url: '/Tokens/WaitingRoomPartial?clinicId=@ViewBag.ClinicId',
                 type: 'GET',
                 success: function (data) {
                     $("#waitingRoomContainer").html(data);
+
+                    // بعد التحديث، ضيف الفلاش للصف اللي عليه الدور
+                    // بعد ما الجدول يتحدث، ضيف الفلاش للصف اللي عليه الدور
+            $("#waitingRoomContainer tr").each(function () {
+                var status = $(this).find("td:nth-child(4)").text().trim();
+                if (status === "InProgress") {
+                    $(this).addClass("flash-row");
+                        }
+                    });
                 }
             });
         }

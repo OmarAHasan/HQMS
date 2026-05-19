@@ -115,8 +115,11 @@ namespace HospitalQueueMS.Controllers
                 .Include(t => t.Clinic)
                 .ThenInclude(c => c.Department)
                 .Where(t => t.Status != TokenStatus.Completed)
+                .OrderByDescending(t => t.Priority == "Urgent" ? 1 : 0) // الأولوية للـ urgent
+                .ThenBy(t => t.CreatedAt)
                 .ToList();
 
+            // فلترة حسب العيادة لو المستخدم دكتور
             if (User.IsInRole("Doctor"))
             {
                 var userId = _userManager.GetUserId(User);
@@ -124,6 +127,7 @@ namespace HospitalQueueMS.Controllers
 
                 if (doctorClinic != null)
                 {
+                    ViewBag.ClinicId = doctorClinic.ClinicId;
                     tokens = tokens.Where(t => t.ClinicId == doctorClinic.ClinicId).ToList();
                 }
                 else
@@ -245,22 +249,27 @@ namespace HospitalQueueMS.Controllers
             return Json(clinics);
         }
 
-        // استدعاء المريض الي عليه الدور 
         [HttpPost]
-        public IActionResult NextToken(int id)
+        public async Task<IActionResult> NextToken(int id)
         {
-
             if (!User.IsInRole("Doctor") && !User.IsInRole("Admin"))
                 return RedirectToAction("Index", "Home");
 
-            var token = _context.Tokens.FirstOrDefault(t => t.TokenId == id);
+            var token = await _context.Tokens.FirstOrDefaultAsync(t => t.TokenId == id);
             if (token != null)
             {
                 token.Status = TokenStatus.InProgress;
                 _context.Update(token);
-                _context.SaveChanges();
-                _hubContext.Clients.All.SendAsync("UpdateDepartments");
-                _hubContext.Clients.All.SendAsync("UpdateWaitingList");
+                await _context.SaveChangesAsync();
+
+                // فقط تحديث القوائم
+                // تحديث عام للـ Reception/Admin
+                await _hubContext.Clients.Group("Reception").SendAsync("UpdateWaitingList");
+                await _hubContext.Clients.Group("Admin").SendAsync("UpdateWaitingList");
+
+                // تحديث خاص للدكتور صاحب العيادة
+                await _hubContext.Clients.Group($"Clinic_{token.ClinicId}").SendAsync("UpdateWaitingList");
+
                 return Json(new { success = true, tokenId = id });
             }
 
@@ -268,20 +277,22 @@ namespace HospitalQueueMS.Controllers
         }
 
 
-
         [HttpPost]
-        public IActionResult CompleteToken(int id)
+        public async Task<IActionResult> CompleteToken(int id)
         {
-            var token = _context.Tokens.FirstOrDefault(t => t.TokenId == id);
+            var token = await _context.Tokens.FirstOrDefaultAsync(t => t.TokenId == id);
             if (token != null)
             {
-                token.Status = TokenStatus.Completed;
+                token.Status = TokenStatus.Completed; 
                 token.CompletedAt = DateTime.Now;
                 _context.Update(token);
-                _context.SaveChanges();
-                _hubContext.Clients.All.SendAsync("UpdateDepartments");
-                _hubContext.Clients.All.SendAsync("UpdateWaitingList");
-                return Json(new { success = true, tokenId = id });
+                await _context.SaveChangesAsync();
+
+                await _hubContext.Clients.All.SendAsync("UpdateDepartments");
+                await _hubContext.Clients.Group("Reception").SendAsync("UpdateWaitingList");
+                await _hubContext.Clients.Group("Admin").SendAsync("UpdateWaitingList");
+
+                await _hubContext.Clients.Group($"Clinic_{token.ClinicId}").SendAsync("UpdateWaitingList"); return Json(new { success = true, tokenId = id });
             }
 
             return Json(new { success = false });
@@ -297,13 +308,20 @@ namespace HospitalQueueMS.Controllers
             return PartialView("_TokensTable", tokens);
         }
 
-        public IActionResult WaitingRoomPartial()
+        public IActionResult WaitingRoomPartial(int clinicId)
         {
             var tokens = _context.Tokens
                 .Include(t => t.Clinic)
-                .Include(t => t.Department)
-                .Where(t => t.Status == TokenStatus.Waiting || t.Status == TokenStatus.InProgress)
+                .ThenInclude(c => c.Department)
+                .Where(t => t.Status != TokenStatus.Completed)
+                .OrderByDescending(t => t.Priority == "Urgent" ? 1 : 0) 
+                .ThenBy(t => t.CreatedAt)
                 .ToList();
+
+            if (User.IsInRole("Doctor"))
+            {
+                tokens = tokens.Where(t => t.ClinicId == clinicId).ToList();
+            }
 
             return PartialView("_WaitingRoomTable", tokens);
         }
@@ -313,10 +331,22 @@ namespace HospitalQueueMS.Controllers
         public IActionResult CompletedTokens()
         {
             var tokens = _context.Tokens
-                .Include(t => t.Clinic)
-                .ThenInclude(c => c.Department)
-                .Where(t => t.Status == TokenStatus.Completed)
-                .ToList();
+       .Include(t => t.Clinic)
+       .ThenInclude(c => c.Department)
+       .Where(t => t.Status == TokenStatus.Completed)
+       .OrderByDescending(t => t.CompletedAt)
+       .ToList();
+
+            if (User.IsInRole("Admin"))
+            {
+                var cutoff = DateTime.Now.AddDays(-3);
+                tokens = tokens.Where(t => t.CompletedAt >= cutoff).ToList();
+            }
+            else
+            {
+                var cutoff = DateTime.Now.AddDays(-1);
+                tokens = tokens.Where(t => t.CompletedAt >= cutoff).ToList();
+            }
 
             if (User.IsInRole("Doctor"))
             {
@@ -329,10 +359,9 @@ namespace HospitalQueueMS.Controllers
                 }
                 else
                 {
-                    tokens = new List<Token>(); // لو الدكتور مش مربوط بعيادة
+                    tokens = new List<Token>(); 
                 }
             }
-            // هنا لو ادمن او ريسيبشن يشووف الكل عادي
 
             return View(tokens);
         }
@@ -402,7 +431,18 @@ namespace HospitalQueueMS.Controllers
             _context.SaveChanges();
             return RedirectToAction("Index");
         }
+        [HttpPost]
+        public async Task<IActionResult> DeleteCompleted()
+        {
+            if (!User.IsInRole("Admin"))
+                return Unauthorized();
 
+            var tokens = _context.Tokens.Where(t => t.Status == TokenStatus.Completed).ToList();
+            _context.Tokens.RemoveRange(tokens);
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction("CompletedTokens");
+        }
 
     }
 }

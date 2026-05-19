@@ -3,12 +3,12 @@
     Layout = "_Layout";
     ViewData["Title"] = "Create Token";
 }
-<h2>Completed Tokens</h2>
+<h2>Completed Patients</h2>
 
 <table class="table table-striped">
     <thead>
         <tr>
-            <th>Token Number</th>
+            <th>Patient Number</th>
             <th>Mobile Number</th>
             <th>Department</th>
             <th>Clinic</th>
@@ -30,3 +30,10 @@
         }
     </tbody>
 </table>
+
+@if (User.IsInRole("Admin"))
+{
+    <form asp-action="DeleteCompleted" method="post">
+        <button type="submit" class="btn btn-danger">Delete All</button>
+    </form>
+}

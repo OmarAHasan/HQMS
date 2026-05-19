@@ -3,38 +3,47 @@
     ViewData["Title"] = "Admin Dashboard";
 }
 
-<h2>Admin Dashboard</h2>
+<h2 class="mb-4 text-primary"> Admin Dashboard</h2>
 
-<div class="list-group">
+<div class="row">
+    <div class="col-md-9">
+        <div class="list-group">
 
-    <!-- إدارة المستخدمين -->
-    <a asp-controller="Users" asp-action="Index" class="list-group-item list-group-item-action btn btn-info">
-        Manage Users
-    </a>
-    <a asp-controller="Users" asp-action="Create" class="list-group-item list-group-item-action btn btn-info">
-        Create New User
-    </a>
+            <!-- Users -->
+            <a asp-controller="Users" asp-action="Index" class="list-group-item list-group-item-action btn btn-info">
+                Manage Users
+            </a>
+            <a asp-controller="Users" asp-action="Create" class="list-group-item list-group-item-action btn btn-info">
+                Create New User
+            </a>
 
-    <!-- إدارة الأقسام -->
-    <a asp-controller="Departments" asp-action="Index" class="list-group-item list-group-item-action btn btn-info">
-        Manage Departments
-    </a>
-    <a asp-controller="Departments" asp-action="Create" class="list-group-item list-group-item-action btn btn-info">
-        Create Department
-    </a>
+            <!--  Departments -->
+            <a asp-controller="Departments" asp-action="Index" class="list-group-item list-group-item-action btn btn-info">
+                Manage Departments
+            </a>
+            <a asp-controller="Departments" asp-action="Create" class="list-group-item list-group-item-action btn btn-info">
+                Create Department
+            </a>
 
-    <!-- إدارة العيادات -->
-    <a asp-controller="Clinics" asp-action="Index" class="list-group-item list-group-item-action btn btn-info">
-        Manage Clinics
-    </a>
-    <a asp-controller="Clinics" asp-action="Create" class="list-group-item list-group-item-action btn btn-info">
-        Create Clinic
-    </a>
+            <!--  Clinics -->
+            <a asp-controller="Clinics" asp-action="Index" class="list-group-item list-group-item-action btn btn-info">
+                Manage Clinics
+            </a>
+            <a asp-controller="Clinics" asp-action="Create" class="list-group-item list-group-item-action btn btn-info">
+                Create Clinic
+            </a>
 
-    <!-- إدارة التوكنز -->
-    <a asp-controller="Tokens" asp-action="Index" class="list-group-item list-group-item-action btn btn-info">
-        Manage Tokens
-    </a>
-    <a asp-controller="Tokens" asp-action="CreateUnified" class="btn btn-success">Generate Token</a>
+            <!--  Tokens -->
+            <a asp-controller="Tokens" asp-action="Index" class="list-group-item list-group-item-action btn btn-info">
+                Manage Tokens
+            </a>
+            <a asp-controller="Tokens" asp-action="CreateUnified" class="btn btn-primary">Generate Token</a>
 
+        </div>
+    </div>
+
+    <!-- sidebar -->
+    <div class="col-md-3">
+        @await Component.InvokeAsync("Stats")
+    </div>
 </div>

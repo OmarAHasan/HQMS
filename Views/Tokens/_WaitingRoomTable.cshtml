@@ -6,7 +6,7 @@
 <table class="table table-striped">
     <thead>
         <tr>
-            <th>Token Number</th>
+            <th>Patient Number</th>
             <th>Department</th>
             <th>Clinic</th>
             <th>Status</th>
@@ -17,7 +17,8 @@
     <tbody>
         @foreach (var token in Model)
         {
-            <tr id="row-@token.TokenId">
+            @* <tr id="row-@token.TokenId"> *@
+            <tr id="row-@token.TokenId" class="@(token.Status == TokenStatus.InProgress ? "flash-row" : "")">
                 <td>@token.TokenCode</td>
                 <td>@token.Clinic?.Department?.DepartmentName</td>
                 <td>@token.Clinic?.ClinicName</td>

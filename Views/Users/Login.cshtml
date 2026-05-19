@@ -1,4 +1,4 @@
-﻿@{
+﻿@* @{
     ViewData["Title"] = "Login";
     Layout = "_Layout";
 }
@@ -25,3 +25,191 @@
         <button type="submit" class="btn btn-primary w-100">Login</button>
     </form>
 </div>
+ *@
+
+@{
+    Layout = null;
+    ViewData["Title"] = "Login";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - HospitalQueueMS</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Poppins', sans-serif;
+            background: url('@Url.Content("~/images/login-bg.png")') no-repeat center center;
+            background-size: cover;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 900px;
+            padding: 0 20px;
+        }
+
+        .left-section {
+            max-width: 420px;
+        }
+
+            .left-section img {
+                width: 340px;
+                margin-bottom: 12px;
+            }
+
+            .left-section h2 {
+                margin-top: 0;
+                font-size: 26px;
+                font-weight: 700;
+                color: #fff;
+            }
+
+            .left-section p {
+                font-size: 15px;
+                line-height: 1.6;
+                color: #e0e0e0;
+            }
+
+        .login-box {
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+            width: 310px;
+            padding: 35px;
+            text-align: left;
+            border: 2px solid #007bff;
+        }
+
+            .login-box h3 {
+                font-size: 22px;
+                font-weight: 700;
+                margin-bottom: 10px;
+                color: #333;
+            }
+
+            .login-box p {
+                font-size: 14px;
+                color: #555;
+                margin-bottom: 25px;
+            }
+
+        .form-group {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+            .form-group input {
+                width: 100%;
+                padding: 12px 12px 12px 36px;
+                border: 1px solid #ccc;
+                border-radius: 6px;
+                font-size: 14px;
+                background-color: #f2f2f2;
+                box-sizing: border-box;
+                transition: border-color 0.3s ease;
+            }
+
+            .form-group label {
+                position: absolute;
+                left: 36px;
+                top: 12px;
+                color: #777;
+                font-size: 14px;
+                background-color: #fff; 
+                padding: 0 4px; 
+                transition: 0.3s ease all;
+                pointer-events: none;
+            }
+
+            .form-group input:focus {
+                border-color: #007bff; 
+            }
+
+                .form-group input:focus + label,
+                .form-group input:not(:placeholder-shown) + label {
+                    top: -8px;
+                    left: 30px;
+                    font-size: 12px;
+                    color: #007bff; 
+                }
+
+            .form-group i {
+                position: absolute;
+                left: 12px;
+                top: 50%;
+                transform: translateY(-50%);
+                color: #777;
+                font-size: 14px;
+            }
+
+        .login-box button {
+            width: 100%;
+            padding: 12px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 15px;
+            cursor: pointer;
+            transition: 0.3s;
+            margin-top: 10px;
+        }
+
+            .login-box button:hover {
+                background-color: #0056d6;
+            }
+
+        .login-box small {
+            display: block;
+            text-align: center;
+            margin-top: 15px;
+            font-size: 12px;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+    <div class="content">
+        <div class="left-section">
+            <img src="@Url.Content("~/images/logo-heart.png")" alt="Hospital Logo">
+            <h2>Get in the line quickly and easily</h2>
+            <p>Alzhraa Hospitals - Jeddah Branch.</p>
+        </div>
+
+        <div class="login-box">
+            <h3>Welcome Back!</h3>
+            <p>Enter your username and password</p>
+
+            <form asp-action="Login" asp-controller="Users" method="post">
+                <div class="form-group">
+                    <i class="fa-solid fa-user"></i>
+                    <input type="text" id="username" name="Username" placeholder=" " required>
+                    <label for="username">Username</label>
+                </div>
+
+                <div class="form-group">
+                    <i class="fa-solid fa-lock"></i>
+                    <input type="password" id="password" name="Password" placeholder=" " required>
+                    <label for="password">Password</label>
+                </div>
+
+                <button type="submit">Login</button>
+            </form>
+            <small>©Developed by OmarHasan @DateTime.Now.Year</small>
+
+        </div>
+    </div>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</body>
+</html>

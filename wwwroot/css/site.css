@@ -18,6 +18,27 @@ header {
     padding: 10px;
     text-align: center;
 }
+/* هنا */
+.flash-row {
+    animation: flash 1s infinite;
+}
+
+@keyframes flash {
+    0% {
+        background-color: #ffeeba;
+    }
+
+    50% {
+        background-color: #fff;
+    }
+
+    100% {
+        background-color: #ffeeba;
+    }
+}
+
+
+
 
 main {
     padding-bottom: 0 !important; 
